@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EMSTrack Dashboard</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+    <link rel="stylesheet" href="/static/css/styles.css">
+</head>
+<body class="dashboard-body">
+    <main class="dashboard-shell">
+        <h1 class="page-label">Main View (Incidents)</h1>
+        <section class="app-frame">
+            <header class="topbar">
+                <div>
+                    <h2 id="dispatcherName">Dispatcher</h2>
+                    <span id="pendingBadge">0 Pending Incidents</span>
+                </div>
+                <button id="logoutBtn">Log out</button>
+            </header>
+            <section class="workspace">
+                <aside class="left-panel">
+                    <div class="panel-title-row"><h3>Units</h3></div>
+                    <label class="toggle-row">
+                        <input id="hideClaimed" type="checkbox">
+                        <span></span>
+                        Hide Claimed Units
+                    </label>
+                    <div id="unitList" class="unit-list"></div>
+                    <div class="key-card">
+                        <p>KEY</p>
+                        <div><span class="dot critical"></span> Critical</div>
+                        <div><span class="dot high"></span> High</div>
+                        <div><span class="dot medium"></span> Medium</div>
+                        <div><span class="dot available"></span> Available</div>
+                    </div>
+                </aside>
+                <section class="map-panel"><div id="map"></div></section>
+                <aside class="right-panel">
+                    <div class="tabs">
+                        <button class="tab active" data-tab="patients">Patients</button>
+                        <button class="tab" data-tab="incidents">Incidents</button>
+                        <button class="tab" data-tab="chat">Live Chat</button>
+                    </div>
+                    <div id="patientsTab" class="tab-content active"><div id="patientList"></div></div>
+                    <div id="incidentsTab" class="tab-content"><div id="incidentList"></div></div>
+                    <div id="chatTab" class="tab-content">
+                        <div id="chatMessages"></div>
+                        <form id="chatForm" class="chat-form">
+                            <input id="chatInput" type="text" placeholder="Message ambulance crew...">
+                            <button type="submit">Send</button>
+                        </form>
+                    </div>
+                </aside>
+            </section>
+        </section>
+    </main>
+
+    <template id="unitTemplate">
+        <article class="unit-card">
+            <div>
+                <h4></h4>
+                <p class="unit-status"></p>
+                <p class="unit-meta"></p>
+            </div>
+            <select></select>
+        </article>
+    </template>
+
+    <template id="incidentTemplate">
+        <article class="incident-card">
+            <div class="incident-head">
+                <span class="priority-pill"></span>
+                <span class="incident-status"></span>
+            </div>
+            <h4></h4>
+            <p></p>
+            <select class="assign-select"></select>
+        </article>
+    </template>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="/static/js/dashboard.js"></script>
+</body>
+</html>

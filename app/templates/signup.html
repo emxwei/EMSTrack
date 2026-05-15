@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EMSTrack Sign Up</title>
+    <link rel="stylesheet" href="/static/css/styles.css">
+</head>
+<body class="login-body">
+    <main class="login-shell">
+        <h1 class="page-label">Sign up</h1>
+        <section class="login-card">
+            <form id="signupForm" class="login-form signup-form">
+                <h2>Create EMSTrack account</h2>
+                <input id="fullName" type="text" placeholder="Full name" autocomplete="name">
+                <input id="email" type="email" placeholder="Email" autocomplete="email">
+                <select id="role">
+                    <option value="">Select role</option>
+                    <option value="dispatcher">Dispatcher</option>
+                    <option value="ambulance_crew">Ambulance Crew</option>
+                    <option value="admin">Admin</option>
+                </select>
+                <input id="password" type="password" placeholder="Password" autocomplete="new-password">
+                <input id="confirmPassword" type="password" placeholder="Confirm password" autocomplete="new-password">
+                <button type="submit">Sign up</button>
+                <a class="secondary-button" href="/">Back to login</a>
+                <div id="signupResult" class="signup-result"></div>
+            </form>
+        </section>
+    </main>
+    <script src="/static/js/signup.js"></script>
+</body>
+</html>
