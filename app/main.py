@@ -10,7 +10,7 @@ from sqlalchemy import text
 from sqlalchemy.orm import Session
 from .database import Base, engine, get_db, SessionLocal
 from .models import Worker, Ambulance, Incident, Message
-from .schemas import LoginRequest, SignupRequest, AssignRequest, StatusRequest, MessageRequest, LocationRequest
+from .schemas import LoginRequest, SignupRequest, AssignRequest, StatusRequest, PatientUpdateRequest, MessageRequest, LocationRequest
 from .seed import seed_data
 from .auth import hash_password, verify_password
 
@@ -33,24 +33,37 @@ def migrate_database():
         dialect = engine.dialect.name
 
         if dialect == "sqlite":
-            columns = conn.execute(text("PRAGMA table_info(workers)")).fetchall()
-            column_names = [column[1] for column in columns]
+            worker_columns = conn.execute(text("PRAGMA table_info(workers)")).fetchall()
+            worker_column_names = [column[1] for column in worker_columns]
 
-            if "email" not in column_names:
+            if "email" not in worker_column_names:
                 conn.execute(text("ALTER TABLE workers ADD COLUMN email VARCHAR(180)"))
 
-            if "password_hash" not in column_names:
+            if "password_hash" not in worker_column_names:
                 conn.execute(text("ALTER TABLE workers ADD COLUMN password_hash VARCHAR(255)"))
+
+            incident_columns = conn.execute(text("PRAGMA table_info(incidents)")).fetchall()
+            incident_column_names = [column[1] for column in incident_columns]
+
+            if "vitals" not in incident_column_names:
+                conn.execute(text("ALTER TABLE incidents ADD COLUMN vitals TEXT"))
 
         elif dialect == "mysql":
-            rows = conn.execute(text("SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'workers'")).fetchall()
-            column_names = [row[0] for row in rows]
+            worker_rows = conn.execute(text("SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'workers'")).fetchall()
+            worker_column_names = [row[0] for row in worker_rows]
 
-            if "email" not in column_names:
+            if "email" not in worker_column_names:
                 conn.execute(text("ALTER TABLE workers ADD COLUMN email VARCHAR(180) UNIQUE"))
 
-            if "password_hash" not in column_names:
+            if "password_hash" not in worker_column_names:
                 conn.execute(text("ALTER TABLE workers ADD COLUMN password_hash VARCHAR(255)"))
+
+            incident_rows = conn.execute(text("SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'incidents'")).fetchall()
+            incident_column_names = [row[0] for row in incident_rows]
+
+            if "vitals" not in incident_column_names:
+                conn.execute(text("ALTER TABLE incidents ADD COLUMN vitals TEXT"))
+
 
 def set_default_passwords():
     db = SessionLocal()
@@ -133,6 +146,7 @@ def dashboard_payload(db: Session):
                 "priority": i.priority,
                 "description": i.description,
                 "address": i.address,
+                "vitals": i.vitals or "",
                 "latitude": i.latitude,
                 "longitude": i.longitude,
                 "status": i.status,
@@ -251,6 +265,37 @@ async def update_status(payload: StatusRequest, db: Session = Depends(get_db)):
 
     ambulance.status = payload.status
     ambulance.last_updated = datetime.utcnow()
+    db.commit()
+
+    await manager.broadcast({"type": "state", "data": dashboard_payload(db)})
+    return {"ok": True}
+
+
+@app.post("/api/patient")
+async def update_patient(payload: PatientUpdateRequest, db: Session = Depends(get_db)):
+    incident = db.query(Incident).filter(Incident.id == payload.incident_id).first()
+
+    if not incident:
+        raise HTTPException(status_code=404, detail="Patient record not found")
+
+    allowed_priorities = {"critical", "high", "medium"}
+
+    if payload.priority not in allowed_priorities:
+        raise HTTPException(status_code=400, detail="Invalid priority")
+
+    patient_name = payload.patient_name.strip()
+    description = payload.description.strip()
+    address = payload.address.strip()
+
+    if not patient_name or not description or not address:
+        raise HTTPException(status_code=400, detail="Patient name, complaint, and location are required")
+
+    incident.patient_name = patient_name
+    incident.priority = payload.priority.strip()
+    incident.description = description
+    incident.address = address
+    incident.vitals = payload.vitals.strip()
+
     db.commit()
 
     await manager.broadcast({"type": "state", "data": dashboard_payload(db)})

@@ -18,6 +18,14 @@ class StatusRequest(BaseModel):
     ambulance_id: int
     status: str
 
+class PatientUpdateRequest(BaseModel):
+    incident_id: int
+    patient_name: str
+    priority: str
+    description: str
+    address: str
+    vitals: str
+
 class MessageRequest(BaseModel):
     sender: str
     body: str

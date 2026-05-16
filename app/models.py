@@ -29,6 +29,7 @@ class Incident(Base):
     priority = Column(String(50), nullable=False)
     description = Column(Text, nullable=False)
     address = Column(String(255), nullable=False)
+    vitals = Column(Text, nullable=True)
     latitude = Column(Float, nullable=False)
     longitude = Column(Float, nullable=False)
     status = Column(String(50), nullable=False, default="pending")
